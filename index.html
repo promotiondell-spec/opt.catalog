@@ -322,7 +322,10 @@ const CATALOG = [
    STATE
    ══════════════════════════════════════════════════════ */
 let activeFilter = 'all';
-let cart = {}; // key: `id-vol`, value: {id, vol, name, buy, qty}
+let cart = {};
+
+function saveCart(){ try{ localStorage.setItem('atparcart', JSON.stringify(cart)); }catch(e){} }
+function loadCart(){ try{ const s=localStorage.getItem('atparcart'); if(s) cart=JSON.parse(s); }catch(e){} }
 let selVols = {}; // selected vol per card: {id: vol}
 let detailVol = 30;
 let detailQty = 1;
@@ -560,11 +563,13 @@ function addToCart(id, vol, qty){
   const p = CATALOG.find(x=>x.id===id);
   if(cart[key]) cart[key].qty += qty;
   else cart[key] = {id, vol, name:p.name, buy:CFG.prices[vol].buy, qty};
+  saveCart();
   updateCartUI();
 }
 
 function removeFromCart(key){
   delete cart[key];
+  saveCart();
   updateCartUI();
   renderGrid();
   if(openId){
@@ -576,6 +581,7 @@ function removeFromCart(key){
 function changeCartQty(key, delta){
   if(!cart[key]) return;
   cart[key].qty = Math.max(1, cart[key].qty + delta);
+  saveCart();
   updateCartUI();
   renderGrid();
   if(openId){ const p = CATALOG.find(x=>x.id===openId); if(p) renderSheet(p); }
@@ -619,8 +625,12 @@ function sendOrder(type){
   const lines = keys.map(k=>`- ${cart[k].name} ${cart[k].vol}мл × ${cart[k].qty} шт = ${n(cart[k].buy*cart[k].qty)} ₽`).join('\n');
   const msg = `Добрый день! Хочу оформить оптовый заказ.\n\nСостав заказа:\n${lines}\n\nИтого: ${n(total)} ₽\n\nЖду подтверждения!`;
   if(type==='tg'){
-    const tgUrl = `tg://resolve?domain=dell_daria&text=${encodeURIComponent(msg)}`;
-    window.location.href = tgUrl;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if(isMobile){
+      window.location.href = `tg://resolve?domain=dell_daria&text=${encodeURIComponent(msg)}`;
+    } else {
+      window.open(`https://t.me/dell_daria?text=${encodeURIComponent(msg)}`, '_blank');
+    }
   } else {
     window.open(`mailto:${CFG.email}?subject=${encodeURIComponent('Оптовый заказ AT PARFUM')}&body=${encodeURIComponent(msg)}`);
   }
@@ -629,6 +639,7 @@ function sendOrder(type){
 /* ══════════════════════════════════════════════════════
    INIT
    ══════════════════════════════════════════════════════ */
+loadCart();
 updateCartUI();
 renderGrid();
 </script>
