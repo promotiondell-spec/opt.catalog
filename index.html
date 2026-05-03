@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Каталог — AT PARFUM - оптовый каталог для оформления заказов</title>
+<title>Каталог — AT PARFUM</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -62,6 +62,7 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;min-height:100dvh;padding-bot
 .card-badge{position:absolute;top:7px;left:7px;font-size:10px;font-weight:500;padding:3px 7px;border-radius:10px;letter-spacing:.03em}
 .badge-new{background:var(--ink);color:#fff}
 .badge-hit{background:var(--gold);color:#fff}
+.badge-order{background:#6B6760;color:#fff}
 .card-body{padding:10px 11px 12px}
 .card-type{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin-bottom:2px}
 .card-name{font-family:'Helvetica Neue',Arial,sans-serif;font-size:16px;font-weight:400;line-height:1.2;margin-bottom:4px}
@@ -248,75 +249,65 @@ const CFG = {
 };
 
 /* ══════════════════════════════════════════════════════
-   ДАННЫЕ — 50 заглушек. Замените реальными ароматами.
-
-   Поля:
-   id        — уникальный номер
-   name      — название аромата
-   type      — uni / m / f
-   char      — fresh / oriental / woody / floral / sweet
-   season    — строка, например "Всесезон"
-   occasion  — строка, например "Вечерний"
-   similar   — название оригинала
-   simHouse  — дом / бренд оригинала
-   desc      — описание аромата (2-3 предложения)
-   notes     — { top: [], heart: [], base: [] }
-   vols      — доступные объёмы, например [30, 50] или [10, 30, 50]
-   matte     — объёмы в матовом флаконе, например [50] или []
-   badge     — 'new' / 'hit' / null
+   ДАННЫЕ — загружаются из parfums.csv автоматически
+   Для обновления каталога замените parfums.csv на GitHub
    ══════════════════════════════════════════════════════ */
-const CATALOG = [
-  {id:1,name:'Lumière Dorée',type:'uni',char:'fresh',season:'Всесезон',occasion:'Вечерний',similar:'Baccarat Rouge 540',simHouse:'Maison Francis Kurkdjian',desc:'Утончённый аромат с открытием из свежего бергамота. В сердце — роскошный жасмин и роза. База из тёплого мускуса и кедра создаёт долгий чувственный шлейф.',notes:{top:['Бергамот','Лимон','Грейпфрут'],heart:['Жасмин','Роза','Ирис'],base:['Мускус','Кедр','Амбра']},vols:[30,50],matte:[50],badge:'hit'},
-  {id:2,name:'Nuit Profonde',type:'m',char:'oriental',season:'Осень/зима',occasion:'Вечерний',similar:'Oud Wood',simHouse:'Tom Ford',desc:'Глубокий восточный аромат на основе уда и кардамона. Сердце из розы и шафрана придаёт теплоту и сложность. Долговечная база из амбры и сандала.',notes:{top:['Кардамон','Шафран','Перец'],heart:['Уд','Роза','Ладан'],base:['Амбра','Сандал','Мускус']},vols:[30,50],matte:[50],badge:null},
-  {id:3,name:'Bois Mystique',type:'uni',char:'woody',season:'Всесезон',occasion:'Офисный',similar:'Terre d\'Hermès',simHouse:'Hermès',desc:'Свежий древесный аромат с нотами грейпфрута и перца. Сердце из ветивера и пачули. Тёплая землистая база с оттенком дуба.',notes:{top:['Грейпфрут','Перец','Апельсин'],heart:['Ветивер','Пачули','Кедр'],base:['Дуб','Мох','Мускус']},vols:[30,50],matte:[],badge:'new'},
-  {id:4,name:'Rose Éternelle',type:'f',char:'floral',season:'Весна',occasion:'Повседневный',similar:'Miss Dior',simHouse:'Dior',desc:'Романтический цветочный аромат с альдегидными верхними нотами. Пышный букет из ириса, фиалки и нероли. Нежная база из сандала и мускуса.',notes:{top:['Альдегиды','Нероли','Грейпфрут'],heart:['Ирис','Фиалка','Роза'],base:['Сандал','Мускус','Пудра']},vols:[30,50],matte:[50],badge:null},
-  {id:5,name:'Ambre Précieux',type:'f',char:'sweet',season:'Зима',occasion:'Вечерний',similar:'La Vie Est Belle',simHouse:'Lancôme',desc:'Сладкий гурманский аромат с нотами карамели и ванили. Сердце из пралине и розы — уютное и соблазнительное. Глубокая база из бензоина и амбры.',notes:{top:['Ваниль','Карамель','Малина'],heart:['Пралине','Роза','Ирис'],base:['Бензоин','Амбра','Мускус']},vols:[30,50],matte:[50],badge:'hit'},
-  {id:6,name:'Cèdre Blanc',type:'m',char:'woody',season:'Всесезон',occasion:'Офисный',similar:'Bleu de Chanel',simHouse:'Chanel',desc:'Чистый и свежий аромат с нотами можжевельника и лаванды. Кедровое сердце с кипарисом. Мускусная база с пачули.',notes:{top:['Можжевельник','Лаванда','Цитрус'],heart:['Кедр','Кипарис','Герань'],base:['Пачули','Мускус','Ветивер']},vols:[30,50],matte:[],badge:null},
-  {id:7,name:'Jardin Secret',type:'f',char:'floral',season:'Лето',occasion:'Повседневный',similar:'Flower Bomb',simHouse:'Viktor & Rolf',desc:'Пышный цветочный аромат с мандарином и апельсином. Туберроза и жасмин создают сочное сердце. Кокосовая база с мускусом.',notes:{top:['Мандарин','Апельсин','Бергамот'],heart:['Туберроза','Жасмин','Пион'],base:['Кокос','Мускус','Сандал']},vols:[30,50],matte:[50],badge:'new'},
-  {id:8,name:'Soie Noire',type:'uni',char:'oriental',season:'Осень',occasion:'Вечерний',similar:'Black Orchid',simHouse:'Tom Ford',desc:'Тёмный чувственный аромат с розой и геранью. Уд и амбра создают богатое восточное сердце. Ванильная база с сандалом.',notes:{top:['Роза','Герань','Перец'],heart:['Уд','Амбра','Орхидея'],base:['Сандал','Ваниль','Смола']},vols:[30,50],matte:[50],badge:null},
-  {id:9,name:'Vent Marin',type:'m',char:'fresh',season:'Лето',occasion:'Повседневный',similar:'Acqua di Gio',simHouse:'Giorgio Armani',desc:'Освежающий морской аромат с мятой и базиликом. Лёгкое сердце из лаванды и ромашки. Кедровая база с водяными нотами.',notes:{top:['Мята','Базилик','Морские ноты'],heart:['Лаванда','Ромашка','Цикламен'],base:['Кедр','Мускус','Дерево']},vols:[30,50],matte:[],badge:null},
-  {id:10,name:'Fleur de Lune',type:'f',char:'sweet',season:'Весна',occasion:'Романтический',similar:'Good Girl',simHouse:'Carolina Herrera',desc:'Игривый сладкий аромат с малиной и личи. Пион и роза создают нежное цветочное сердце. Мягкая мускусная база с амброй.',notes:{top:['Малина','Личи','Персик'],heart:['Пион','Роза','Жасмин'],base:['Мускус','Амбра','Пудра']},vols:[30,50],matte:[50],badge:null},
-  {id:11,name:'Épice Rouge',type:'m',char:'oriental',season:'Осень/зима',occasion:'Вечерний',similar:'Sauvage',simHouse:'Dior',desc:'Пряный мужской аромат с перцем и кориандром. Лавандовое сердце с геранью. Тёплая база из амбры и кедра.',notes:{top:['Перец','Кориандр','Бергамот'],heart:['Лаванда','Герань','Ветивер'],base:['Амбра','Кедр','Пачули']},vols:[30,50],matte:[],badge:'hit'},
-  {id:12,name:'Iris Nacré',type:'f',char:'floral',season:'Всесезон',occasion:'Офисный',similar:'Chanel N°5',simHouse:'Chanel',desc:'Классический элегантный аромат с ирисом и фиалкой. Букет из розы и иланг-иланга. Сандаловая база с пудровым мускусом.',notes:{top:['Ирис','Альдегиды','Бергамот'],heart:['Роза','Фиалка','Иланг-иланг'],base:['Сандал','Мускус','Ветивер']},vols:[30,50],matte:[50],badge:null},
-  {id:13,name:'Velours Sombre',type:'uni',char:'woody',season:'Зима',occasion:'Вечерний',similar:'Tobacco Vanille',simHouse:'Tom Ford',desc:'Глубокий табачно-ванильный аромат с пряными верхними нотами. Цветочное сердце с орхидеей. Тёплая смолистая база.',notes:{top:['Табак','Специи','Кориандр'],heart:['Орхидея','Жасмин','Роза'],base:['Ваниль','Смола','Сандал']},vols:[30,50],matte:[50],badge:'new'},
-  {id:14,name:'Citrus Noble',type:'m',char:'fresh',season:'Лето',occasion:'Повседневный',similar:'Light Blue',simHouse:'Dolce & Gabbana',desc:'Яркий цитрусовый аромат с лимоном и грейпфрутом. Освежающее сердце из мяты и кориандра. Лёгкая база из кедра.',notes:{top:['Лимон','Грейпфрут','Бергамот'],heart:['Мята','Кориандр','Розмарин'],base:['Кедр','Мускус','Дерево']},vols:[30,50],matte:[],badge:'hit'},
-  {id:15,name:'Sable Chaud',type:'f',char:'sweet',season:'Лето',occasion:'Пляжный',similar:'Soleil Blanc',simHouse:'Tom Ford',desc:'Солнечный пляжный аромат с кокосом и ванилью. Цветочное сердце из тиаре и жасмина. Мягкая мускусная база.',notes:{top:['Кокос','Цитрус','Бергамот'],heart:['Тиаре','Жасмин','Иланг-иланг'],base:['Ваниль','Мускус','Амбра']},vols:[30,50],matte:[50],badge:null},
-  {id:16,name:'Forêt Enchantée',type:'uni',char:'woody',season:'Осень',occasion:'Прогулочный',similar:'Oud Wood',simHouse:'Tom Ford',desc:'Лесной аромат с можжевельником и сосной. Смолистое сердце из ладана. Глубокая база из пачули и земляных нот.',notes:{top:['Можжевельник','Сосна','Эвкалипт'],heart:['Ладан','Смола','Кедр'],base:['Пачули','Земля','Ветивер']},vols:[30,50],matte:[],badge:null},
-  {id:17,name:'Poudre Fine',type:'f',char:'floral',season:'Всесезон',occasion:'Офисный',similar:'Si',simHouse:'Giorgio Armani',desc:'Нежный пудровый аромат с фиалкой и ирисом. Розовое сердце с акацией. Сандалово-мускусная база.',notes:{top:['Фиалка','Ирис','Бергамот'],heart:['Роза','Акация','Пион'],base:['Сандал','Мускус','Пудра']},vols:[30,50],matte:[50],badge:'new'},
-  {id:18,name:'Oud Impérial',type:'uni',char:'oriental',season:'Зима',occasion:'Вечерний',similar:'Oud Ispahan',simHouse:'Dior',desc:'Роскошный удовый аромат с шафраном и кардамоном. Сердце из дамасской розы и ладана. Богатая смолистая база.',notes:{top:['Шафран','Кардамон','Розовый перец'],heart:['Уд','Дамасская роза','Ладан'],base:['Амбра','Смола','Сандал']},vols:[30,50],matte:[50],badge:'hit'},
-  {id:19,name:'Eau Fraîche',type:'uni',char:'fresh',season:'Лето',occasion:'Спортивный',similar:'CK One',simHouse:'Calvin Klein',desc:'Лёгкий водяной аромат с огурцом и дыней. Зелёное сердце из мяты и базилика. Чистая мускусная база.',notes:{top:['Огурец','Дыня','Лайм'],heart:['Мята','Базилик','Зелёный чай'],base:['Мускус','Кедр','Амбра']},vols:[30,50],matte:[],badge:null},
-  {id:20,name:'Grenade Douce',type:'f',char:'sweet',season:'Весна',occasion:'Романтический',similar:'Mon Guerlain',simHouse:'Guerlain',desc:'Сладкий фруктовый аромат с гранатом и малиной. Лавандово-цветочное сердце. Ванильная база с амброй.',notes:{top:['Гранат','Малина','Бергамот'],heart:['Лаванда','Пион','Роза'],base:['Ваниль','Амбра','Мускус']},vols:[30,50],matte:[50],badge:null},
-  {id:21,name:'Tabac Blond',type:'uni',char:'oriental',season:'Осень/зима',occasion:'Вечерний',similar:'Habit Rouge',simHouse:'Guerlain',desc:'Богатый табачный аромат с нотами кожи и специй. Сердце из пряных цветочных нот. Ванильно-смолистая база.',notes:{top:['Табак','Кожа','Специи'],heart:['Роза','Иланг-иланг','Мирра'],base:['Ваниль','Смола','Ветивер']},vols:[30,50],matte:[50],badge:null},
-  {id:22,name:'Musc Sensuel',type:'f',char:'sweet',season:'Всесезон',occasion:'Повседневный',similar:'Narciso Rodriguez For Her',simHouse:'Narciso Rodriguez',desc:'Чувственный мускусный аромат с нотами персика. Нежное цветочное сердце. Тёплая пудровая база.',notes:{top:['Персик','Цитрус','Альдегиды'],heart:['Роза','Жасмин','Ирис'],base:['Мускус','Пудра','Кедр']},vols:[30,50],matte:[50],badge:null},
-  {id:23,name:'Pétale Blanc',type:'f',char:'floral',season:'Весна/лето',occasion:'Свежий',similar:'Chance Eau Tendre',simHouse:'Chanel',desc:'Лёгкий цветочный аромат с белыми цветами. Жасмин и ландыш создают воздушное сердце. Мускусная база.',notes:{top:['Белые цветы','Бергамот','Лайм'],heart:['Жасмин','Ландыш','Магнолия'],base:['Мускус','Кедр','Амбра']},vols:[30,50],matte:[],badge:'new'},
-  {id:24,name:'Accord Noir',type:'m',char:'woody',season:'Зима',occasion:'Вечерний',similar:'Y',simHouse:'Yves Saint Laurent',desc:'Смелый мужской аромат с яблоком и имбирём. Шалфейно-кедровое сердце. Амбровая база.',notes:{top:['Яблоко','Имбирь','Бергамот'],heart:['Шалфей','Кедр','Герань'],base:['Амбра','Мускус','Пачули']},vols:[30,50],matte:[],badge:null},
-  {id:25,name:'Eau de Soie',type:'uni',char:'fresh',season:'Весна',occasion:'Офисный',similar:'Un Jardin sur le Nil',simHouse:'Hermès',desc:'Шёлковый водяной аромат с зелёным манго. Цветочное сердце из лотоса. Лёгкая мускусная база.',notes:{top:['Манго','Гуава','Зелёные ноты'],heart:['Лотос','Кувшинка','Жасмин'],base:['Мускус','Кедр','Амбра']},vols:[30,50],matte:[],badge:null},
-  {id:26,name:'Brise Saline',type:'uni',char:'fresh',season:'Лето',occasion:'Морской',similar:'Sel de Vétiver',simHouse:'The Different Company',desc:'Солоноватый морской аромат с морскими нотами и цитрусом. Ветивер и морские водоросли. Минеральная база.',notes:{top:['Соль','Цитрус','Морские ноты'],heart:['Ветивер','Морские водоросли','Амбра'],base:['Мускус','Минералы','Кедр']},vols:[30,50],matte:[],badge:'hit'},
-  {id:27,name:'Pivoine Rose',type:'f',char:'floral',season:'Весна',occasion:'Романтический',similar:'Chloe',simHouse:'Chloé',desc:'Романтический пионовый аромат с личи. Букет из розы и магнолии. Нежная мускусная база с кедром.',notes:{top:['Личи','Фрезия','Личи'],heart:['Пион','Роза','Магнолия'],base:['Мускус','Кедр','Амбра']},vols:[30,50],matte:[50],badge:null},
-  {id:28,name:'Vétiver Froid',type:'m',char:'woody',season:'Всесезон',occasion:'Офисный',similar:'Guerlain Vétiver',simHouse:'Guerlain',desc:'Холодный ветивер с цитрусовым открытием. Сердце из дерева и специй. Землистая ветиверная база.',notes:{top:['Грейпфрут','Бергамот','Специи'],heart:['Ветивер','Табак','Кедр'],base:['Земля','Мускус','Дерево']},vols:[30,50],matte:[],badge:null},
-  {id:29,name:'Caramel Élégant',type:'f',char:'sweet',season:'Зима',occasion:'Уютный',similar:'Angel',simHouse:'Thierry Mugler',desc:'Сладкий карамельно-шоколадный аромат. Сердце из пачули с кофе. Ванильно-мускусная база.',notes:{top:['Карамель','Шоколад','Бергамот'],heart:['Пачули','Кофе','Мёд'],base:['Ваниль','Мускус','Бензоин']},vols:[30,50],matte:[50],badge:null},
-  {id:30,name:'Mousse Verte',type:'uni',char:'fresh',season:'Весна',occasion:'Прогулочный',similar:'En Passant',simHouse:'Frederic Malle',desc:'Зелёный свежий аромат со сиренью и весенними нотами. Огурцово-зелёное сердце. Мускусная база.',notes:{top:['Сирень','Зелёные ноты','Огурец'],heart:['Мята','Жасмин','Ландыш'],base:['Мускус','Кедр','Амбра']},vols:[30,50],matte:[],badge:null},
-  {id:31,name:'Cuir Parisien',type:'uni',char:'oriental',season:'Осень',occasion:'Вечерний',similar:'Tuscan Leather',simHouse:'Tom Ford',desc:'Изысканный кожаный аромат с малиной и шафраном. Сердце из жасмина с тимьяном. Тёмная кожаная база.',notes:{top:['Малина','Шафран','Ладан'],heart:['Жасмин','Тимьян','Бирюзовое дерево'],base:['Кожа','Смола','Кедр']},vols:[30,50],matte:[50],badge:'new'},
-  {id:32,name:'Iris Gris',type:'uni',char:'floral',season:'Всесезон',occasion:'Офисный',similar:'Iris Silver Mist',simHouse:'Serge Lutens',desc:'Холодный ирисовый аромат с пудровыми нотами. Сердце из мимозы и фиалки. Ветивер и мускус.',notes:{top:['Ирис','Пудра','Альдегиды'],heart:['Мимоза','Фиалка','Роза'],base:['Ветивер','Мускус','Дерево']},vols:[30,50],matte:[],badge:null},
-  {id:33,name:'Vanille Dorée',type:'f',char:'sweet',season:'Зима',occasion:'Уютный',similar:'Shalimar',simHouse:'Guerlain',desc:'Классический ванильный аромат с цитрусовым открытием. Цветочное сердце из ириса. Глубокая база из серой амбры.',notes:{top:['Бергамот','Лимон','Апельсин'],heart:['Ирис','Роза','Жасмин'],base:['Ваниль','Серая амбра','Ветивер']},vols:[30,50],matte:[50],badge:'hit'},
-  {id:34,name:'Cœur d\'Orient',type:'uni',char:'oriental',season:'Зима',occasion:'Вечерний',similar:'Ambre Nuit',simHouse:'Dior',desc:'Восточный амбровый аромат с розой и гвоздикой. Уд и ладан создают богатое сердце. Амбровая смолистая база.',notes:{top:['Роза','Гвоздика','Шафран'],heart:['Уд','Ладан','Амбра'],base:['Смола','Мускус','Сандал']},vols:[30,50],matte:[50],badge:null},
-  {id:35,name:'Thé Blanc',type:'uni',char:'fresh',season:'Весна/лето',occasion:'Офисный',similar:'White Tea',simHouse:'Elizabeth Arden',desc:'Лёгкий чайный аромат с белым чаем и огурцом. Цветочное сердце. Мускусная база.',notes:{top:['Белый чай','Огурец','Бергамот'],heart:['Жасмин','Пион','Ландыш'],base:['Мускус','Амбра','Кедр']},vols:[30,50],matte:[],badge:null},
-  {id:36,name:'Bergamote Pure',type:'uni',char:'fresh',season:'Лето',occasion:'Повседневный',similar:'Bergamotto di Calabria',simHouse:'Acqua di Parma',desc:'Чистый цитрусовый аромат с бергамотом. Зелёное сердце из базилика. Мускусная деревянная база.',notes:{top:['Бергамот','Лимон','Апельсин'],heart:['Базилик','Нероли','Петитгрейн'],base:['Мускус','Кедр','Амбра']},vols:[30,50],matte:[],badge:null},
-  {id:37,name:'Jasmin d\'Été',type:'f',char:'floral',season:'Лето',occasion:'Романтический',similar:'A la Rose',simHouse:'Maison Francis Kurkdjian',desc:'Насыщенный жасминовый аромат с нероли. Букет из туберозы и белых цветов. Мускусная база.',notes:{top:['Нероли','Бергамот','Мандарин'],heart:['Жасмин','Туберроза','Иланг-иланг'],base:['Мускус','Сандал','Амбра']},vols:[30,50],matte:[50],badge:'new'},
-  {id:38,name:'Fougère Royale',type:'m',char:'woody',season:'Всесезон',occasion:'Офисный',similar:'Polo',simHouse:'Ralph Lauren',desc:'Классическая фужерная композиция с лавандой. Дубовый мох и герань. Кедровая база с кумарином.',notes:{top:['Лаванда','Бергамот','Кориандр'],heart:['Герань','Дубовый мох','Ирис'],base:['Кедр','Кумарин','Мускус']},vols:[30,50],matte:[],badge:null},
-  {id:39,name:'Cerise Noire',type:'f',char:'sweet',season:'Зима',occasion:'Вечерний',similar:'Black Opium',simHouse:'Yves Saint Laurent',desc:'Соблазнительный аромат с чёрной вишней и кофе. Сердце из белых цветов. Ванильно-пачулиевая база.',notes:{top:['Чёрная вишня','Кофе','Анис'],heart:['Жасмин','Белые цветы','Лакрица'],base:['Ваниль','Пачули','Кедр']},vols:[30,50],matte:[50],badge:'hit'},
-  {id:40,name:'Patchouli Noble',type:'uni',char:'oriental',season:'Осень',occasion:'Вечерний',similar:'Coromandel',simHouse:'Chanel',desc:'Глубокий пачулиевый аромат с сандалом. Сердце из розы и ладана. Смолистая тёплая база.',notes:{top:['Пачули','Кардамон','Бергамот'],heart:['Роза','Ладан','Мирра'],base:['Сандал','Смола','Амбра']},vols:[30,50],matte:[50],badge:null},
-  {id:41,name:'Safran d\'Or',type:'uni',char:'oriental',season:'Зима',occasion:'Вечерний',similar:'Portrait of a Lady',simHouse:'Frederic Malle',desc:'Богатый шафрановый аромат с розой. Кожа и уд в сердце. Тёплая амбровая база.',notes:{top:['Шафран','Розовый перец','Кардамон'],heart:['Роза','Кожа','Уд'],base:['Амбра','Мускус','Смола']},vols:[30,50],matte:[50],badge:null},
-  {id:42,name:'Violette Douce',type:'f',char:'floral',season:'Весна',occasion:'Романтический',similar:'Insolence',simHouse:'Guerlain',desc:'Сладкий фиалковый аромат с малиной. Фиалково-ирисовое сердце. Пудровая мускусная база.',notes:{top:['Фиалка','Малина','Бергамот'],heart:['Ирис','Роза','Магнолия'],base:['Мускус','Пудра','Сандал']},vols:[30,50],matte:[],badge:'new'},
-  {id:43,name:'Aqua Vitae',type:'m',char:'fresh',season:'Лето',occasion:'Спортивный',similar:'Acqua di Gio Profondo',simHouse:'Giorgio Armani',desc:'Глубокий морской аромат с морскими нотами и цикламеном. Лёгкая зелёная сердечная нота. Минеральная база.',notes:{top:['Морские ноты','Цикламен','Мандарин'],heart:['Зелёные ноты','Жасмин','Розмарин'],base:['Минералы','Мускус','Пачули']},vols:[30,50],matte:[],badge:null},
-  {id:44,name:'Encens Sacré',type:'uni',char:'oriental',season:'Зима',occasion:'Медитативный',similar:'Passage d\'Enfer',simHouse:'L\'Artisan Parfumeur',desc:'Торжественный ладанный аромат с тонкой сладостью. Смолистое сердце. Белый мускус.',notes:{top:['Ладан','Смола','Кардамон'],heart:['Мирра','Бензоин','Роза'],base:['Белый мускус','Амбра','Сандал']},vols:[30,50],matte:[50],badge:null},
-  {id:45,name:'Bambou Frais',type:'uni',char:'fresh',season:'Лето',occasion:'Повседневный',similar:'Bamboo',simHouse:'Gucci',desc:'Свежий бамбуковый аромат с флоральными нотами. Лёгкое цветочное сердце. Чистая мускусная база.',notes:{top:['Бамбук','Юзу','Бергамот'],heart:['Пион','Жасмин','Роза'],base:['Мускус','Кедр','Сандал']},vols:[30,50],matte:[],badge:null},
-  {id:46,name:'Magnolia Blanc',type:'f',char:'floral',season:'Весна',occasion:'Свежий',similar:'White Magnolia',simHouse:'Jo Malone',desc:'Нежный магнолиевый аромат с лимоном. Белый цветочный букет. Мускусная база.',notes:{top:['Лимон','Грейпфрут','Бергамот'],heart:['Магнолия','Жасмин','Ландыш'],base:['Мускус','Амбра','Кедр']},vols:[30,50],matte:[50],badge:null},
-  {id:47,name:'Noix de Coco',type:'f',char:'sweet',season:'Лето',occasion:'Пляжный',similar:'Monoi',simHouse:'Comptoir Sud Pacifique',desc:'Тропический кокосовый аромат с тиаре. Цветочно-кремовое сердце. Ванильная мускусная база.',notes:{top:['Кокос','Тиаре','Мандарин'],heart:['Иланг-иланг','Жасмин','Ваниль'],base:['Мускус','Сандал','Амбра']},vols:[30,50],matte:[50],badge:null},
-  {id:48,name:'Poivre Rouge',type:'m',char:'woody',season:'Осень',occasion:'Вечерний',similar:'Spicebomb',simHouse:'Viktor & Rolf',desc:'Пряный мужской аромат с красным перцем. Кожано-деревянное сердце. Смолистая база.',notes:{top:['Красный перец','Грейпфрут','Специи'],heart:['Кожа','Кедр','Ветивер'],base:['Смола','Мускус','Пачули']},vols:[30,50],matte:[],badge:'new'},
-  {id:49,name:'Laurier Vert',type:'uni',char:'fresh',season:'Весна',occasion:'Офисный',similar:'Eau de Campagne',simHouse:'Sisley',desc:'Зелёный ароматный аромат с лавровым листом. Гербасное сердце. Землистая база.',notes:{top:['Лавровый лист','Шалфей','Базилик'],heart:['Тимьян','Лаванда','Розмарин'],base:['Мускус','Земля','Кедр']},vols:[30,50],matte:[],badge:null},
-  {id:50,name:'Miel Ambré',type:'f',char:'sweet',season:'Осень/зима',occasion:'Уютный',similar:'L\'Heure Bleue',simHouse:'Guerlain',desc:'Медово-янтарный аромат с флоральными нотами. Ирисово-розовое сердце. Глубокая ванильная база.',notes:{top:['Мёд','Бергамот','Анис'],heart:['Ирис','Роза','Гелиотроп'],base:['Ваниль','Амбра','Бензоин']},vols:[30,50],matte:[50],badge:'hit'},
-];
+let CATALOG = [];
+
+function parseCSV(text) {
+  const lines = text.split('\n').filter(l => l.trim());
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(line => {
+    // Handle quoted fields with commas inside
+    const fields = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { fields.push(cur); cur = ''; }
+      else { cur += ch; }
+    }
+    fields.push(cur);
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (fields[i] || '').trim(); });
+    return {
+      id:       parseInt(obj.id) || 0,
+      name:     obj.name || '',
+      similar:  obj.similar || '',
+      simHouse: obj.simHouse || '',
+      type:     obj.type || 'uni',
+      char:     obj.char || 'fresh',
+      group:    obj.group || '',
+      season:   obj.season || '',
+      badge:    obj.badge || null,
+      status:   obj.status || 'in_stock',
+      desc:     obj.desc || '',
+      notes: {
+        top:   obj.notesTop   ? obj.notesTop.split(',').map(s=>s.trim()).filter(Boolean)   : [],
+        heart: obj.notesHeart ? obj.notesHeart.split(',').map(s=>s.trim()).filter(Boolean) : [],
+        base:  obj.notesBase  ? obj.notesBase.split(',').map(s=>s.trim()).filter(Boolean)  : [],
+      },
+      vols: [10, 30, 50],
+    };
+  }).filter(p => p.id > 0);
+}
+
+async function loadCatalog() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink2);font-size:14px">Загружаем каталог...</div>';
+  try {
+    const r = await fetch('parfums.csv?v=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    CATALOG = parseCSV(text);
+    loadCart();
+    updateCartUI();
+    renderGrid();
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#b03000;font-size:14px">Не удалось загрузить каталог.<br>Убедитесь, что файл parfums.csv находится рядом с catalog.html</div>';
+    console.error('CSV load error:', e);
+  }
+}
 
 /* ══════════════════════════════════════════════════════
    STATE
@@ -396,11 +387,13 @@ function cardHTML(p){
     ? `<span class="card-badge badge-new">Новинка</span>`
     : p.badge==='hit'
     ? `<span class="card-badge badge-hit">Хит</span>` : '';
+  const statusBadge = p.status === 'on_order'
+    ? `<span class="card-badge badge-order">Под заказ</span>` : '';
   const topNotes = p.notes.top.slice(0,2).join(' · ');
 
   return `<div class="card" onclick="openDetail(${p.id})">
     <div class="card-visual" style="background:${bg}">
-      ${badge}
+      ${badge}${statusBadge}
       ${bottleSVG(clr)}
     </div>
     <div class="card-body">
@@ -466,7 +459,7 @@ function renderSheet(p){
     <div class="d-hero">
       <div class="d-bottle" style="background:${bg}">${bottleSVG(clr,42,80)}</div>
       <div class="d-info">
-        <div class="d-type">${typeLabel[p.type]} · ${p.season}</div>
+        <div class="d-type">${typeLabel[p.type]} · ${p.season}${p.status==='on_order' ? ' · <span style="color:#7a5500">Под заказ</span>' : ''}</div>
         <div class="d-name">${p.name}</div>
         <div class="d-sim">≈ ${p.similar}</div>
         <div class="d-tags">
@@ -639,9 +632,7 @@ function sendOrder(type){
 /* ══════════════════════════════════════════════════════
    INIT
    ══════════════════════════════════════════════════════ */
-loadCart();
-updateCartUI();
-renderGrid();
+loadCatalog();
 </script>
 </body>
 </html>
