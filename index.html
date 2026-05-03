@@ -174,7 +174,7 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;min-height:100dvh;padding-bot
 <div class="header">
   <div class="header-top">
     <div class="brand"><img src="logo.png" alt="AT PARFUM"></div>
-    <button class="cart-btn" onclick="openCart()">
+    <button class="cart-btn" id="open-cart-btn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
       Заказ <span class="cart-badge" id="cart-badge">0</span>
     </button>
@@ -183,15 +183,15 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;min-height:100dvh;padding-bot
     <input class="search-input" type="text" id="search" placeholder="Поиск по названию, нотам..." oninput="renderGrid()">
   </div>
   <div class="filters" id="filters">
-    <button class="filter-btn active" onclick="setFilter('all',this)">Все</button>
-    <button class="filter-btn" onclick="setFilter('fresh',this)">Свежие</button>
-    <button class="filter-btn" onclick="setFilter('oriental',this)">Восточные</button>
-    <button class="filter-btn" onclick="setFilter('woody',this)">Древесные</button>
-    <button class="filter-btn" onclick="setFilter('floral',this)">Цветочные</button>
-    <button class="filter-btn" onclick="setFilter('sweet',this)">Сладкие</button>
-    <button class="filter-btn" onclick="setFilter('uni',this)">Унисекс</button>
-    <button class="filter-btn" onclick="setFilter('m',this)">Мужские</button>
-    <button class="filter-btn" onclick="setFilter('f',this)">Женские</button>
+    <button class="filter-btn active" data-filter="all">Все</button>
+    <button class="filter-btn" data-filter="fresh">Свежие</button>
+    <button class="filter-btn" data-filter="oriental">Восточные</button>
+    <button class="filter-btn" data-filter="woody">Древесные</button>
+    <button class="filter-btn" data-filter="floral">Цветочные</button>
+    <button class="filter-btn" data-filter="sweet">Сладкие</button>
+    <button class="filter-btn" data-filter="uni">Унисекс</button>
+    <button class="filter-btn" data-filter="m">Мужские</button>
+    <button class="filter-btn" data-filter="f">Женские</button>
   </div>
 </div>
 
@@ -209,25 +209,25 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;min-height:100dvh;padding-bot
 <div class="grid" id="grid"></div>
 
 <!-- DETAIL SHEET -->
-<div class="overlay" id="detail-overlay" onclick="closeDetail()"></div>
+<div class="overlay" id="detail-overlay" id="detail-close-btn"></div>
 <div class="sheet" id="detail-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-close"><button class="close-btn" onclick="closeDetail()">×</button></div>
+  <div class="sheet-close"><button class="close-btn" id="detail-close-btn">×</button></div>
   <div id="sheet-content"></div>
 </div>
 
 <!-- CART DRAWER -->
-<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-overlay" id="cart-overlay" id="cart-close-btn"></div>
 <div class="cart-drawer" id="cart-drawer">
   <div class="cart-head">
     <span class="cart-title">Ваш заказ</span>
-    <button class="cart-x" onclick="closeCart()">×</button>
+    <button class="cart-x" id="cart-close-btn">×</button>
   </div>
   <div class="cart-body" id="cart-body"></div>
   <div class="cart-foot">
     <div class="cart-total-row"><span>Итого:</span><span id="cart-total">0 ₽</span></div>
-    <button class="send-tg" onclick="sendOrder('tg')">Отправить заказ в Telegram</button>
-    <button class="send-mail" onclick="sendOrder('mail')">Отправить на почту</button>
+    <button class="send-tg" id="send-tg-btn">Отправить заказ в Telegram</button>
+    <button class="send-mail" id="send-mail-btn">Отправить на почту</button>
   </div>
 </div>
 
@@ -376,9 +376,28 @@ function renderGrid(){
   else if(sort==='price_desc') items.sort((a,b)=>CFG.prices[50].buy - CFG.prices[30].buy);
 
   document.getElementById('count-label').textContent = `${items.length} ароматов`;
-  document.getElementById('grid').innerHTML = items.length
+  const grid = document.getElementById('grid');
+  grid.innerHTML = items.length
     ? items.map(cardHTML).join('')
     : '<div class="no-results">Ничего не найдено</div>';
+
+  // Attach events after render
+  grid.querySelectorAll('.card').forEach(card => {
+    const id = parseInt(card.dataset.id);
+    card.addEventListener('click', () => openDetail(id));
+  });
+  grid.querySelectorAll('.vol-pill').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      setCardVol(parseInt(btn.dataset.cardid), parseInt(btn.dataset.vol));
+    });
+  });
+  grid.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      quickAdd(parseInt(btn.dataset.addid));
+    });
+  });
 }
 
 function cardHTML(p){
@@ -397,7 +416,7 @@ function cardHTML(p){
     ? `<span class="card-badge badge-order">Под заказ</span>` : '';
   const topNotes = p.notes.top.slice(0,2).join(' · ');
 
-  return `<div class="card" onclick="openDetail(${p.id})">
+  return `<div class="card" data-id="${p.id}">
     <div class="card-visual" style="background:${bg}">
       ${badge}${statusBadge}
       ${bottleSVG(clr)}
@@ -408,14 +427,14 @@ function cardHTML(p){
       <div class="card-sim">≈ ${p.similar}</div>
       <div class="card-notes"><span class="note-tag">${topNotes}</span></div>
       <div class="card-vols">
-        ${p.vols.map(v=>`<button class="vol-pill ${v===vol?'active':''}" onclick="event.stopPropagation();setCardVol(${p.id},${v})">${v} мл</button>`).join('')}
+        ${p.vols.map(v=>`<button class="vol-pill ${v===vol?'active':''}" data-vol="${v}" data-cardid="${p.id}">${v} мл</button>`).join('')}
       </div>
       <div class="card-bottom">
         <div>
           <div class="card-price">${n(buy)} ₽</div>
           <div class="card-retail">РРЦ ${n(retail)} ₽</div>
         </div>
-        <button class="add-btn ${inCart?'in-cart':''}" onclick="event.stopPropagation();quickAdd(${p.id})">
+        <button class="add-btn ${inCart?'in-cart':''}" data-addid="${p.id}">
           ${inCart?'✓':'+'}
         </button>
       </div>
@@ -514,7 +533,7 @@ function renderSheet(p){
     <div class="d-section">
       <div class="d-section-title">Объём и цена</div>
       <div class="d-vols">
-        ${p.vols.map(v=>`<div class="d-vol ${v===detailVol?'active':''}" onclick="setDetailVol(${p.id},${v})">
+        ${p.vols.map(v=>`<div class="d-vol ${v===detailVol?'active':''}" data-dvol="${v}">
           <div class="dv-ml">${v} мл</div>
           <div class="dv-buy">${n(CFG.prices[v].buy)} ₽</div>
           <div class="dv-ret">РРЦ ${n(CFG.prices[v].retail)} ₽</div>
@@ -525,16 +544,29 @@ function renderSheet(p){
 
     <div class="d-add">
       <div class="qty-wrap">
-        <button class="qty-btn" onclick="adjDetailQty(-1)">−</button>
+        <button class="qty-btn" id="qty-minus">−</button>
         <div class="qty-val" id="detail-qty">${detailQty}</div>
-        <button class="qty-btn" onclick="adjDetailQty(1)">+</button>
+        <button class="qty-btn" id="qty-plus">+</button>
       </div>
-      <button class="add-main ${inCart?'done':''}" id="add-main-btn" onclick="addFromDetail(${p.id})">
+      <button class="add-main ${inCart?'done':''}" id="add-main-btn" id="add-main-btn">
         ${inCart?'Добавлено ✓':'Добавить в заказ'}
       </button>
     </div>`;
-}
 
+  // Attach sheet event listeners
+  document.querySelectorAll('.d-vol').forEach(el => {
+    el.addEventListener('click', () => {
+      const v = parseInt(el.dataset.dvol);
+      if(v) setDetailVol(openId, v);
+    });
+  });
+  const qMinus = document.getElementById('qty-minus');
+  const qPlus  = document.getElementById('qty-plus');
+  const addBtn = document.getElementById('add-main-btn');
+  if(qMinus) qMinus.addEventListener('click', () => adjDetailQty(-1));
+  if(qPlus)  qPlus.addEventListener('click',  () => adjDetailQty(1));
+  if(addBtn) addBtn.addEventListener('click', () => addFromDetail(openId));
+}
 function setDetailVol(id, vol){
   detailVol = vol;
   const p = CATALOG.find(x=>x.id===id);
@@ -593,20 +625,27 @@ function updateCartUI(){
   const totalQty = keys.reduce((s,k)=>s+cart[k].qty,0);
   document.getElementById('cart-badge').textContent = totalQty;
   document.getElementById('cart-total').textContent = n(total)+' ₽';
-  document.getElementById('cart-body').innerHTML = keys.length
-    ? keys.map(k=>`<div class="ci">
+  const cartBody = document.getElementById('cart-body');
+  cartBody.innerHTML = keys.length
+    ? keys.map(k=>`<div class="ci" data-key="${k}">
         <div class="ci-info">
           <div class="ci-name">${cart[k].name}</div>
           <div class="ci-sub">${cart[k].vol} мл · ${n(cart[k].buy)} ₽/шт</div>
         </div>
         <div class="ci-qty">
-          <button class="ci-qty-btn" onclick="changeCartQty('${k}',-1)">−</button>
+          <button class="ci-qty-btn" data-qkey="${k}" data-qdelta="-1">−</button>
           <div class="ci-qty-val">${cart[k].qty}</div>
-          <button class="ci-qty-btn" onclick="changeCartQty('${k}',1)">+</button>
+          <button class="ci-qty-btn" data-qkey="${k}" data-qdelta="1">+</button>
         </div>
-        <button class="ci-del" onclick="removeFromCart('${k}')">×</button>
+        <button class="ci-del" data-delkey="${k}">×</button>
       </div>`).join('')
     : '<div class="cart-empty">Корзина пуста</div>';
+  cartBody.querySelectorAll('.ci-qty-btn').forEach(btn => {
+    btn.addEventListener('click', () => changeCartQty(btn.dataset.qkey, parseInt(btn.dataset.qdelta)));
+  });
+  cartBody.querySelectorAll('.ci-del').forEach(btn => {
+    btn.addEventListener('click', () => removeFromCart(btn.dataset.delkey));
+  });
 }
 
 function openCart(){
@@ -639,6 +678,24 @@ function sendOrder(type){
 /* ══════════════════════════════════════════════════════
    INIT
    ══════════════════════════════════════════════════════ */
+// Global static event listeners
+document.getElementById('detail-overlay').addEventListener('click', closeDetail);
+document.getElementById('detail-close-btn').addEventListener('click', closeDetail);
+document.getElementById('open-cart-btn').addEventListener('click', openCart);
+
+const cartCloseEl = document.getElementById('cart-close-btn');
+if(cartCloseEl) cartCloseEl.addEventListener('click', closeCart);
+document.getElementById('cart-overlay').addEventListener('click', closeCart);
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
+});
+document.getElementById('search').addEventListener('input', renderGrid);
+document.getElementById('sort').addEventListener('change', renderGrid);
+
+document.getElementById('send-tg-btn').addEventListener('click', () => sendOrder('tg'));
+document.getElementById('send-mail-btn').addEventListener('click', () => sendOrder('mail'));
+
 loadCatalog();
 </script>
 </body>
