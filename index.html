@@ -86,10 +86,25 @@ body{font-family:"Helvetica Neue",Arial,sans-serif;min-height:100dvh;padding-bot
 .card-qty-val{width:26px;height:28px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;background:#fff}
 
 /* DETAIL SHEET */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(2px);visibility:hidden}
+.overlay.open{visibility:visible}
 .overlay.open{opacity:1;pointer-events:all}
-.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;z-index:101;max-height:94dvh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
-.sheet.open{transform:translateY(0)}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;z-index:101;max-height:94dvh;overflow-y:auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);visibility:hidden}
+.sheet.open{transform:translateY(0);visibility:visible}
+/* Desktop: centered modal */
+@media(min-width:700px){
+  .sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%) scale(.96);width:780px;max-width:94vw;max-height:88dvh;border-radius:16px;visibility:hidden}
+  .sheet.open{transform:translate(-50%,-50%) scale(1);visibility:visible}
+  .sheet-handle{display:none}
+  .d-desktop{display:flex;gap:0;align-items:stretch}
+  .d-desktop-left{width:340px;flex-shrink:0;position:sticky;top:0}
+  .d-desktop-left .d-gallery{height:100%;min-height:340px;border-radius:16px 0 0 16px}
+  .d-desktop-right{flex:1;overflow-y:auto;max-height:88dvh}
+}
+@media(max-width:699px){
+  .d-desktop{display:block}
+  .d-desktop-left .d-gallery{border-radius:0}
+}
 .sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0}
 .sheet-close{position:sticky;top:0;display:flex;justify-content:flex-end;padding:8px 14px 0;background:#fff;z-index:2}
 .close-btn{background:#f5f5f3;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:18px;color:var(--ink2);display:flex;align-items:center;justify-content:center;touch-action:manipulation}
@@ -114,6 +129,7 @@ body{font-family:"Helvetica Neue",Arial,sans-serif;min-height:100dvh;padding-bot
 .lightbox-slides{display:flex;transition:transform .3s ease;touch-action:pan-y}
 .lightbox-slide{width:100%;flex-shrink:0}
 .lightbox-slide img{width:100%;height:auto;max-height:60dvh;object-fit:contain;border-radius:4px}
+@media(min-width:700px){.lightbox-inner{max-width:360px}.lightbox-slide img{max-height:55dvh}}
 .lightbox-arrow{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
 .lightbox-arrow.prev{left:4px}
 .lightbox-arrow.next{right:4px}
@@ -493,12 +509,16 @@ function renderSheet(p){
     :'фото оригинала';
 
   document.getElementById('sheet-content').innerHTML=`
+    <div class="d-desktop">
+    <div class="d-desktop-left">
     <div class="d-gallery" id="d-gallery" onclick="openLightbox(${p.id})">
       <div class="d-gallery-slides" id="d-gallery-slides">${gallerySlides}</div>
       <button class="d-gallery-arrow prev" onclick="event.stopPropagation();detailGalleryNav(-1)">‹</button>
       <button class="d-gallery-arrow next" onclick="event.stopPropagation();detailGalleryNav(1)">›</button>
       <div class="d-gallery-dots">${galleryDots}</div>
     </div>
+    </div><!-- /d-desktop-left -->
+    <div class="d-desktop-right">
     <div class="d-hero">
       <div class="d-info">
         <div class="d-type">${typeLabel[p.type]||'Унисекс'} · ${p.season||''}</div>
@@ -546,7 +566,9 @@ function renderSheet(p){
       <button class="add-main ${inCart?'done':''}" id="add-main-btn" onclick="addFromDetail(${p.id})">
         ${inCart?'Добавлено ✓':'Добавить в заказ'}
       </button>
-    </div>`;
+    </div>
+    </div><!-- /d-desktop-right -->
+    </div><!-- /d-desktop -->`;
 
   // Attach swipe to detail gallery
   setTimeout(()=>{
