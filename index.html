@@ -109,10 +109,11 @@ body{font-family:"Helvetica Neue",Arial,sans-serif;min-height:100dvh;padding-bot
 /* LIGHTBOX */
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:300;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .lightbox.open{opacity:1;pointer-events:all}
-.lightbox-inner{position:relative;width:100%;max-width:600px;padding:0 40px}
+.lightbox-inner{position:relative;width:100%;max-width:480px;max-height:80dvh;padding:0 40px}
+@media(min-width:600px){.lightbox-inner{max-width:420px}}
 .lightbox-slides{display:flex;transition:transform .3s ease;touch-action:pan-y}
 .lightbox-slide{width:100%;flex-shrink:0}
-.lightbox-slide img{width:100%;height:auto;max-height:80dvh;object-fit:contain;border-radius:4px}
+.lightbox-slide img{width:100%;height:auto;max-height:60dvh;object-fit:contain;border-radius:4px}
 .lightbox-arrow{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;background:rgba(255,255,255,0.15);border:none;border-radius:50%;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
 .lightbox-arrow.prev{left:4px}
 .lightbox-arrow.next{right:4px}
@@ -307,6 +308,29 @@ function bottleSVG(color){
   </svg>`;
 }
 
+// ── SWIPE HELPER ──────────────────────────────────────
+function addSwipe(el, onLeft, onRight){
+  let startX=0, startY=0, moved=false;
+  el.addEventListener('touchstart', e=>{
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+    moved=false;
+  },{passive:true});
+  el.addEventListener('touchmove', e=>{
+    moved=true;
+  },{passive:true});
+  el.addEventListener('touchend', e=>{
+    if(!moved) return;
+    const dx=e.changedTouches[0].clientX - startX;
+    const dy=e.changedTouches[0].clientY - startY;
+    if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40){
+      if(dx < 0) onLeft();
+      else onRight();
+    }
+  },{passive:true});
+}
+// ──────────────────────────────────────────────────────
+
 function setFilter(f,btn){
   activeFilter=f;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
@@ -329,6 +353,17 @@ function renderGrid(){
   document.getElementById('grid').innerHTML=items.length
     ?items.map(cardHTML).join('')
     :'<div class="no-results">Ничего не найдено</div>';
+
+  // Attach swipe to each card slider
+  items.forEach(p=>{
+    const sliderEl=document.getElementById(`cs-${p.id}`);
+    if(sliderEl){
+      addSwipe(sliderEl,
+        ()=>cardSlide(p.id, 1),   // swipe left → next
+        ()=>cardSlide(p.id, -1)   // swipe right → prev
+      );
+    }
+  });
 }
 
 function cardHTML(p){
@@ -446,7 +481,7 @@ function renderSheet(p){
   const inCart=!!cart[`${p.id}-${detailVol}`];
   const photos=getPhotos(p);
   detailSlide=0;
-
+  // Will attach swipe after render
   const gallerySlides=photos.map((ph,i)=>`
     <div class="d-gallery-slide">
       <img src="${ph}" alt="${p.name}" onerror="this.parentElement.style.background='${bg}';this.style.display='none'">
@@ -512,6 +547,17 @@ function renderSheet(p){
         ${inCart?'Добавлено ✓':'Добавить в заказ'}
       </button>
     </div>`;
+
+  // Attach swipe to detail gallery
+  setTimeout(()=>{
+    const dg=document.getElementById('d-gallery');
+    if(dg){
+      addSwipe(dg,
+        ()=>detailGalleryNav(1),
+        ()=>detailGalleryNav(-1)
+      );
+    }
+  }, 50);
 }
 
 function detailGalleryNav(dir){
@@ -547,6 +593,15 @@ function openLightbox(id){
   dotsEl.innerHTML=lbPhotos.map((_,i)=>`<div class="lightbox-dot${i===lbSlide?' active':''}" onclick="lbGo(${i})"></div>`).join('');
   lbGo(lbSlide);
   document.getElementById('lightbox').classList.add('open');
+  // Attach swipe to lightbox
+  const lbInner=document.getElementById('lb-slides');
+  if(lbInner && !lbInner._swipeAttached){
+    lbInner._swipeAttached=true;
+    addSwipe(lbInner,
+      ()=>lbNav(1),
+      ()=>lbNav(-1)
+    );
+  }
 }
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
 function closeLightboxOnBg(e){if(e.target===document.getElementById('lightbox'))closeLightbox();}
