@@ -21,9 +21,7 @@ body{font-family:"Helvetica Neue",Arial,sans-serif;min-height:100dvh;padding-bot
 .brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
 .brand img{height:26px;width:auto;filter:brightness(0) invert(1)}
 .brand-sub{font-size:11px;color:rgba(255,255,255,0.5);line-height:1.3;border-left:1px solid rgba(255,255,255,0.2);padding-left:10px}
-.calc-btn{display:inline-flex;align-items:center;white-space:nowrap;padding:6px 10px;border-radius:20px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);font-size:11px;text-decoration:none;transition:all .15s;line-height:1.3;text-align:center}
-.calc-btn:hover{background:rgba(255,255,255,0.15);color:#fff}
-@media(min-width:500px){.calc-btn{font-size:12px;padding:7px 12px}}
+
 .cart-btn{display:flex;align-items:center;gap:6px;background:var(--gold);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;flex-shrink:0}
 .cart-badge{background:#fff;color:var(--ink);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
 .search-row{margin-bottom:10px}
@@ -215,6 +213,32 @@ body{font-family:"Helvetica Neue",Arial,sans-serif;min-height:100dvh;padding-bot
 .cart-total-row{display:flex;justify-content:space-between;font-size:15px;font-weight:500;margin-bottom:12px}
 .send-tg{width:100%;padding:13px;background:var(--ink);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px;touch-action:manipulation}
 .send-mail{width:100%;padding:13px;background:#f5f5f3;color:var(--ink);border:1px solid var(--border);border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;touch-action:manipulation}
+
+.calc-banner{background:#fff;padding:14px 16px;display:flex;align-items:center;gap:14px}
+.calc-banner-icon{width:40px;height:40px;background:var(--ink);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.calc-banner-text{flex:1}
+.calc-banner-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.calc-banner-sub{font-size:12px;color:var(--ink2);line-height:1.4}
+.calc-banner-btn{display:inline-flex;align-items:center;gap:5px;padding:9px 14px;background:var(--gold);color:#fff;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
+.calc-banner-btn:active{opacity:.8}
+
+
+@media(min-width:700px){
+  /* Cross-fade morphing on hover */
+  .card-slider{overflow:hidden}
+  .card-slides{display:block;position:relative;width:100%;height:100%}
+  .card-slide{position:absolute;inset:0;opacity:0;transition:opacity .6s ease}
+  .card-slide:first-child{opacity:1}
+  .card:hover .card-slide:first-child{opacity:0}
+  .card:hover .card-slide:nth-child(2){opacity:1}
+  /* Hide arrows and dots on desktop — morphing replaces them */
+  .card-arrow,.card-dots{display:none}
+}
+@media(max-width:699px){
+  /* Mobile: keep original slider */
+  .card-slides{display:flex;width:300%;height:100%;transition:transform .3s ease;position:relative}
+  .card-slide{position:relative;width:33.333%;height:100%;flex-shrink:0;opacity:1}
+}
 .no-results{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ink2);font-size:14px}
 </style>
 </head>
@@ -226,15 +250,10 @@ body{font-family:"Helvetica Neue",Arial,sans-serif;min-height:100dvh;padding-bot
       <img src="logo.png" alt="AT PARFUM">
       <div class="brand-sub">Оптовый каталог<br>с оформлением заказа</div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-      <a href="https://promotiondell-spec.github.io/perfume/" target="_blank" class="calc-btn">
-        Калькулятор прибыльности
-      </a>
-      <button class="cart-btn" onclick="openCart()">
+    <button class="cart-btn" onclick="openCart()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
       Заказ <span class="cart-badge" id="cart-badge">0</span>
     </button>
-    </div>
   </div>
   <div class="search-row">
     <input class="search-input" type="text" id="search" placeholder="Поиск по названию, нотам, описанию..." oninput="renderGrid()">
@@ -263,6 +282,23 @@ body{font-family:"Helvetica Neue",Arial,sans-serif;min-height:100dvh;padding-bot
 </div>
 
 <div class="grid" id="grid"></div>
+
+<div class="calc-banner" style="margin:0 12px 20px;border-radius:12px;border:1px solid var(--border)">
+  <div class="calc-banner-icon">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+      <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/>
+      <line x1="12" y1="17" x2="12" y2="21"/>
+      <path d="M6 8h4M6 12h2M14 8h4M14 12h4"/>
+    </svg>
+  </div>
+  <div class="calc-banner-text">
+    <div class="calc-banner-title">Калькулятор прибыльности</div>
+    <div class="calc-banner-sub">Рассчитайте доход по модели реализации или опта</div>
+  </div>
+  <a href="https://promotiondell-spec.github.io/perfume/" target="_blank" class="calc-banner-btn">
+    Открыть →
+  </a>
+</div>
 
 <!-- DETAIL SHEET -->
 <div class="overlay" id="detail-overlay" onclick="closeDetail()"></div>
