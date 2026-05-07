@@ -303,9 +303,9 @@ const CFG = {
   tgLink: 'https://t.me/dell_daria',
   email:  'team.voyage.paris@gmail.com',
   prices: {
-    10: {buy:590,  retail:1490},
-    30: {buy:990,  retail:2990},
-    50: {buy:1490, retail:4990},
+    10: {buy:490,  retail:1490},
+    30: {buy:890,  retail:2490},
+    50: {buy:1190, retail:3490},
   },
   // Общее фото для всех карточек (3-е — упаковка)
   sharedPhotos: [
@@ -572,7 +572,7 @@ function renderSheet(p){
         ${p.vols.map(v=>`<div class="d-vol ${v===detailVol?'active':''}" onclick="setDetailVol(${p.id},${v})">
           <div class="dv-ml">${v} мл</div>
           <div class="dv-buy">${n(CFG.prices[v].buy)} ₽</div>
-          <div class="dv-ret">РРЦ ${n(CFG.prices[v].retail)} ₽</div>
+          <div class="dv-ret">Розничная цена ${n(CFG.prices[v].retail)} ₽</div>
         </div>`).join('')}
       </div>
     </div>
